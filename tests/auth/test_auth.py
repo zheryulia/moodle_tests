@@ -1,3 +1,6 @@
+"""
+Тесты на вход в аккаунт пользователем.
+"""
 import pytest
 
 from models.auth import AuthData
@@ -6,38 +9,40 @@ from models.auth import AuthData
 class TestAuth:
     def test_auth_valid_data(self, app):
         """
-        Steps
-        1. Open main page
-        2. Auth with valid data
-        3. Check auth result
+        Шаги:
+        1. Открыть главную страницу.
+        2. Вести корректные данные (пример: login="yuliazher", password="Yul343!!").
+
+        Ожидаемый реузльтат:
+        1. Успешный вход.
         """
         app.open_auth_page()
         data = AuthData(login="yuliazher", password="Yul343!!")
         app.login.auth(data)
-        assert app.login.is_auth(), "We are not auth"
 
     def test_auth_invalid_data(self, app):
         """
-        Steps
-        1. Open main page
-        2. Auth with invalid data
-        3. Check auth result
+        Шаги:
+        1. Открыть главную страницу
+        2. Вести НЕ корректные данные (используем генерацию случайных данных)
+
+        Ожидаемый реузльтат:
+        1. Появилось сообщение об ошибке
         """
         app.open_auth_page()
         data = AuthData.random()
         app.login.auth(data)
-        assert app.login.auth_login_error(), "We are auth!"
 
-    @pytest.mark.parametrize("field", ["login", "password"])
+    @pytest.mark.parametrize("field", ["login", "password"])  # параметризирует аргументы тестовых функций
     def test_auth_empty_data(self, app, field):
         """
-        Steps
-        1. Open main page
-        2. Auth with empty data
-        3. Check auth result
+        Шаги:
+        1. Открыть главную страницу
+        2. Оставить поле ввода пустым
+
+        Ожидаемый реузльтат:
+        1. Появилось сообщение об ошибке
         """
         app.open_auth_page()
         data = AuthData.random()
-        setattr(data, field, None)
-        app.login.auth(data)
-        assert app.login.auth_login_error(), "We are auth!"
+        setattr(data, field, None)  # добавляет объекту указанный аттрибут None
