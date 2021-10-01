@@ -1,0 +1,514 @@
+Index: tests/auth/test_auth.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import pytest\r\n\r\nfrom models.auth import AuthData\r\n\r\n\r\nclass TestAuth:\r\n    def test_auth_valid_data(self, app):\r\n        \"\"\"\r\n        Steps\r\n        1. Open main page\r\n        2. Auth with valid data\r\n        3. Check auth result\r\n        \"\"\"\r\n        app.open_auth_page()\r\n        data = AuthData(login=\"yuliazher\", password=\"Yul343!!\")\r\n        app.login.auth(data)\r\n        assert app.login.is_auth(), \"We are not auth\"\r\n\r\n    def test_auth_invalid_data(self, app):\r\n        \"\"\"\r\n        Steps\r\n        1. Open main page\r\n        2. Auth with invalid data\r\n        3. Check auth result\r\n        \"\"\"\r\n        app.open_auth_page()\r\n        data = AuthData.random()\r\n        app.login.auth(data)\r\n        assert app.login.auth_login_error(), \"We are auth!\"\r\n\r\n    @pytest.mark.parametrize(\"field\", [\"login\", \"password\"])\r\n    def test_auth_empty_data(self, app, field):\r\n        \"\"\"\r\n        Steps\r\n        1. Open main page\r\n        2. Auth with empty data\r\n        3. Check auth result\r\n        \"\"\"\r\n        app.open_auth_page()\r\n        data = AuthData.random()\r\n        setattr(data, field, None)\r\n        app.login.auth(data)\r\n        assert app.login.auth_login_error(), \"We are auth!\"\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/tests/auth/test_auth.py b/tests/auth/test_auth.py
+--- a/tests/auth/test_auth.py	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
++++ b/tests/auth/test_auth.py	(date 1633093702484)
+@@ -1,3 +1,6 @@
++"""
++Тесты на вход в аккаунт пользователем.
++"""
+ import pytest
+ 
+ from models.auth import AuthData
+@@ -6,38 +9,40 @@
+ class TestAuth:
+     def test_auth_valid_data(self, app):
+         """
+-        Steps
+-        1. Open main page
+-        2. Auth with valid data
+-        3. Check auth result
++        Шаги:
++        1. Открыть главную страницу.
++        2. Вести корректные данные (пример: login="yuliazher", password="Yul343!!").
++
++        Ожидаемый реузльтат:
++        1. Успешный вход.
+         """
+         app.open_auth_page()
+         data = AuthData(login="yuliazher", password="Yul343!!")
+         app.login.auth(data)
+-        assert app.login.is_auth(), "We are not auth"
+ 
+     def test_auth_invalid_data(self, app):
+         """
+-        Steps
+-        1. Open main page
+-        2. Auth with invalid data
+-        3. Check auth result
++        Шаги:
++        1. Открыть главную страницу
++        2. Вести НЕ корректные данные (используем генерацию случайных данных)
++
++        Ожидаемый реузльтат:
++        1. Появилось сообщение об ошибке
+         """
+         app.open_auth_page()
+         data = AuthData.random()
+         app.login.auth(data)
+-        assert app.login.auth_login_error(), "We are auth!"
+ 
+-    @pytest.mark.parametrize("field", ["login", "password"])
++    @pytest.mark.parametrize("field", ["login", "password"])  # параметризирует аргументы тестовых функций
+     def test_auth_empty_data(self, app, field):
+         """
+-        Steps
+-        1. Open main page
+-        2. Auth with empty data
+-        3. Check auth result
++        Шаги:
++        1. Открыть главную страницу
++        2. Оставить поле ввода пустым
++
++        Ожидаемый реузльтат:
++        1. Появилось сообщение об ошибке
+         """
+         app.open_auth_page()
+         data = AuthData.random()
+-        setattr(data, field, None)
+-        app.login.auth(data)
+-        assert app.login.auth_login_error(), "We are auth!"
++        setattr(data, field, None)  # добавляет объекту указанный аттрибут None
+Index: pages/application.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from pages.login_page import LoginPage\r\n\r\n\r\nclass Application:\r\n    def __init__(self, driver, url):\r\n        self.driver = driver\r\n        self.url = url\r\n        self.login = LoginPage(self)\r\n\r\n    def open_main_page(self):\r\n        self.driver.get(self.url)\r\n\r\n    def quit(self):\r\n        self.driver.quit()\r\n\r\n    def open_auth_page(self):\r\n        self.driver.get(self.url + \"/login/index.php\")
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/pages/application.py b/pages/application.py
+--- a/pages/application.py	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
++++ b/pages/application.py	(date 1633101921893)
+@@ -1,11 +1,17 @@
+-from pages.login_page import LoginPage
++"""
++Здесь содержатся основные ействия над сайтом.
++"""
+ 
++from pages.page_login import LoginPage
++from pages.page_user import UserPage, UserDataPage
+ 
+ class Application:
+     def __init__(self, driver, url):
+         self.driver = driver
+         self.url = url
+         self.login = LoginPage(self)
++        self.user_data = UserPage(self)
++        self.user_data_page = UserDataPage(self)
+ 
+     def open_main_page(self):
+         self.driver.get(self.url)
+@@ -14,4 +20,6 @@
+         self.driver.quit()
+ 
+     def open_auth_page(self):
+-        self.driver.get(self.url + "/login/index.php")
+\ No newline at end of file
++        self.driver.get(self.url + "/login/index.php")
++
++
+Index: locators/login_page_locators.py
+===================================================================
+diff --git a/locators/login_page_locators.py b/locators/login_page_locators.py
+deleted file mode 100644
+--- a/locators/login_page_locators.py	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
++++ /dev/null	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
+@@ -1,13 +0,0 @@
+-from selenium.webdriver.common.by import By
+-
+-
+-class LoginPageLocators:
+-    LOGIN = (By.ID, "username")
+-    PASSWORD = (By.ID, "password")
+-    SUBMIT = (By.ID, "loginbtn")
+-    FORM = (By.ID, "page-wrapper")
+-    USER_BUTTON = (By.CLASS_NAME, "userbutton")
+-    USER_MENU = (By.CLASS_NAME, "usermenu")
+-    EXIT = (By.ID, "actionmenuaction-6")
+-    EXIT_CONFIRM = (By.XPATH, "//button[text()='Выход']")
+-    LOGIN_ERROR = (By.ID, "loginerrormessage")
+\ No newline at end of file
+Index: pages/login_page.py
+===================================================================
+diff --git a/pages/login_page.py b/pages/login_page.py
+deleted file mode 100644
+--- a/pages/login_page.py	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
++++ /dev/null	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
+@@ -1,52 +0,0 @@
+-from selenium.webdriver.remote.webelement import WebElement
+-
+-from models.auth import AuthData
+-from pages.base_page import BasePage
+-from locators.login_page_locators import LoginPageLocators
+-
+-
+-class LoginPage(BasePage):
+-    def is_auth(self):
+-        self.find_element(LoginPageLocators.FORM)
+-        element = self.find_elements(LoginPageLocators.USER_BUTTON)
+-        if len(element) > 0:
+-            return True
+-        return False
+-
+-    def is_exit_confirm_button(self):
+-        self.find_element(LoginPageLocators.FORM)
+-        element = self.find_elements(LoginPageLocators.EXIT_CONFIRM)
+-        if len(element) > 0:
+-            return True
+-        return False
+-
+-    def email_input(self) -> WebElement:
+-        return self.find_element(LoginPageLocators.LOGIN)
+-
+-    def password_input(self) -> WebElement:
+-        return self.find_element(LoginPageLocators.PASSWORD)
+-
+-    def submit_button(self) -> WebElement:
+-        return self.find_element(LoginPageLocators.SUBMIT)
+-
+-    def user_menu(self) -> WebElement:
+-        return self.find_element(LoginPageLocators.USER_MENU)
+-
+-    def exit(self) -> WebElement:
+-        return self.find_element(LoginPageLocators.EXIT)
+-
+-    def exit_confirm(self) -> WebElement:
+-        return self.find_element(LoginPageLocators.EXIT_CONFIRM)
+-
+-    def auth(self, data: AuthData):
+-        if self.is_exit_confirm_button():
+-            self.click_element(self.exit_confirm())
+-        elif self.is_auth():
+-            self.click_element(self.user_menu())
+-            self.click_element(self.exit())
+-        self.fill_element(self.email_input(), data.login)
+-        self.fill_element(self.password_input(), data.password)
+-        self.click_element(self.submit_button())
+-
+-    def auth_login_error(self) -> str:
+-        return self.find_element(LoginPageLocators.LOGIN_ERROR).text
+Index: pages/base_page.py
+===================================================================
+diff --git a/pages/base_page.py b/pages/base_page.py
+deleted file mode 100644
+--- a/pages/base_page.py	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
++++ /dev/null	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
+@@ -1,28 +0,0 @@
+-from selenium.webdriver.support.wait import WebDriverWait
+-from selenium.webdriver.support import expected_conditions as EC
+-
+-
+-class BasePage:
+-    def __init__(self, app):
+-        self.app = app
+-
+-    def find_element(self, locator, wait_time=10):
+-        element = WebDriverWait(self.app.driver, wait_time).until(
+-            EC.presence_of_element_located(locator),
+-            message=f"Can't find element by locator {locator}",
+-        )
+-        return element
+-
+-    def find_elements(self, locator):
+-        return self.app.driver.find_elements(*locator)
+-
+-    @staticmethod
+-    def fill_element(element, text):
+-        element.clear()
+-        if text:
+-            element.send_keys(text)
+-            return element
+-
+-    @staticmethod
+-    def click_element(element):
+-        element.click()
+\ No newline at end of file
+Index: .idea/inspectionProfiles/profiles_settings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/inspectionProfiles/profiles_settings.xml b/.idea/inspectionProfiles/profiles_settings.xml
+new file mode 100644
+--- /dev/null	(date 1632898973631)
++++ b/.idea/inspectionProfiles/profiles_settings.xml	(date 1632898973631)
+@@ -0,0 +1,6 @@
++<component name="InspectionProjectProfileManager">
++  <settings>
++    <option name="USE_PROJECT_PROFILE" value="false" />
++    <version value="1.0" />
++  </settings>
++</component>
+\ No newline at end of file
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+--- /dev/null	(date 1630951521459)
++++ b/.idea/vcs.xml	(date 1630951521459)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="$PROJECT_DIR$" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+Index: conftest.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import pytest\r\n\r\nfrom selenium import webdriver\r\nfrom selenium.webdriver.chrome.options import Options\r\n\r\nfrom webdriver_manager.chrome import ChromeDriverManager\r\n\r\nfrom pages.application import Application\r\n\r\n\r\n@pytest.fixture(scope=\"session\")\r\ndef app(request):\r\n    base_url = request.config.getoption(\"--base-url\")\r\n    chrome_options = Options()\r\n    chrome_options.add_argument(\"--headless\")\r\n    fixture = Application(\r\n        webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options),\r\n        base_url,\r\n    )\r\n    yield fixture\r\n    fixture.quit()\r\n\r\n\r\ndef pytest_addoption(parser):\r\n    parser.addoption(\r\n        \"--base-url\",\r\n        action=\"store\",\r\n        default=\"https://qacoursemoodle.innopolis.university\",\r\n        help=\"enter base_url\",\r\n    ),\r\n    parser.addoption(\r\n        \"--username\",\r\n        action=\"store\",\r\n        default=\"yuliazher\",\r\n        help=\"enter username\",\r\n    ),\r\n    parser.addoption(\r\n        \"--password\",\r\n        action=\"store\",\r\n        default=\"Yul343!!\",\r\n        help=\"enter password\",\r\n    ),
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/conftest.py b/conftest.py
+--- a/conftest.py	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
++++ b/conftest.py	(date 1633099662199)
+@@ -2,41 +2,39 @@
+ 
+ from selenium import webdriver
+ from selenium.webdriver.chrome.options import Options
+-
+ from webdriver_manager.chrome import ChromeDriverManager
+ 
++from models.auth import AuthData
+ from pages.application import Application
+ 
+ 
+ @pytest.fixture(scope="session")
+ def app(request):
+-    base_url = request.config.getoption("--base-url")
++    url = request.config.getoption("--url")
+     chrome_options = Options()
+-    chrome_options.add_argument("--headless")
++    # chrome_options.add_argument("--headless")
+     fixture = Application(
+         webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options),
+-        base_url,
++        url,
+     )
+     yield fixture
+     fixture.quit()
+ 
++@pytest.fixture
++def auth(app, request):
++    login = request.config.getoption("--login")
++    password = request.config.getoption("--password")
++    app.open_auth_page()
++    auth_data = AuthData(login=login, password=password)
++    app.login.auth(auth_data)
++    assert app.login.is_auth(), "Вход не выполнен"
++    yield
++    app.login.sign_out()
+ 
+ def pytest_addoption(parser):
+     parser.addoption(
+-        "--base-url",
++        "--url",
+         action="store",
+         default="https://qacoursemoodle.innopolis.university",
+-        help="enter base_url",
+-    ),
+-    parser.addoption(
+-        "--username",
+-        action="store",
+-        default="yuliazher",
+-        help="enter username",
+-    ),
+-    parser.addoption(
+-        "--password",
+-        action="store",
+-        default="Yul343!!",
+-        help="enter password",
+-    ),
+\ No newline at end of file
++        help="ссылка на qacourse",
++    )
+Index: .idea/inspectionProfiles/Project_Default.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/inspectionProfiles/Project_Default.xml b/.idea/inspectionProfiles/Project_Default.xml
+new file mode 100644
+--- /dev/null	(date 1630946461257)
++++ b/.idea/inspectionProfiles/Project_Default.xml	(date 1630946461257)
+@@ -0,0 +1,13 @@
++<component name="InspectionProjectProfileManager">
++  <profile version="1.0">
++    <option name="myName" value="Project Default" />
++    <inspection_tool class="PyShadowingBuiltinsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
++      <option name="ignoredNames">
++        <list>
++          <option value="sum" />
++        </list>
++      </option>
++    </inspection_tool>
++    <inspection_tool class="TaskProblemsInspection" enabled="true" level="ERROR" enabled_by_default="true" />
++  </profile>
++</component>
+\ No newline at end of file
+Index: .pre-commit-config.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.pre-commit-config.yaml b/.pre-commit-config.yaml
+new file mode 100644
+--- /dev/null	(date 1630952319863)
++++ b/.pre-commit-config.yaml	(date 1630952319863)
+@@ -0,0 +1,24 @@
++# See https://pre-commit.com for more information
++# See https://pre-commit.com/hooks.html for more hooks
++repos:
++  - repo: 'https://github.com/pre-commit/pre-commit-hooks'
++    rev: v2.4.0
++    hooks:
++      # проверяет наличие переноса строки в конце всех текстовых файлов
++      - id: end-of-file-fixer
++      # предупреждает о добавлении больших файлов в Git
++      - id: check-added-large-files
++      # предупреждает о сохранении файлов с UTF-8 BOM
++      - id: check-byte-order-marker
++      # предотвращает сохранение приватных ключей
++      - id: detect-private-key
++      # проверяет, что файлы, которые мы собираемся сохранять, как минимум валидный Python
++      - id: check-ast
++  - repo: 'https://gitlab.com/pycqa/flake8'
++    rev: 3.8.2
++    hooks:
++      - id: flake8
++  - repo: 'https://github.com/psf/black'
++    rev: 19.10b0
++    hooks:
++      - id: black
+\ No newline at end of file
+Index: .idea/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+new file mode 100644
+--- /dev/null	(date 1632898973744)
++++ b/.idea/.gitignore	(date 1632898973744)
+@@ -0,0 +1,3 @@
++# Default ignored files
++/shelf/
++/workspace.xml
+Index: .idea/moodle_tests.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/moodle_tests.iml b/.idea/moodle_tests.iml
+new file mode 100644
+--- /dev/null	(date 1632898973602)
++++ b/.idea/moodle_tests.iml	(date 1632898973602)
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module type="PYTHON_MODULE" version="4">
++  <component name="NewModuleRootManager">
++    <content url="file://$MODULE_DIR$">
++      <excludeFolder url="file://$MODULE_DIR$/venv" />
++    </content>
++    <orderEntry type="inheritedJdk" />
++    <orderEntry type="sourceFolder" forTests="false" />
++  </component>
++  <component name="PyDocumentationSettings">
++    <option name="format" value="PLAIN" />
++    <option name="myDocStringFormat" value="Plain" />
++  </component>
++  <component name="TestRunnerService">
++    <option name="PROJECT_TEST_RUNNER" value="py.test" />
++  </component>
++</module>
+\ No newline at end of file
+Index: .travis.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.travis.yml b/.travis.yml
+new file mode 100644
+--- /dev/null	(date 1630954235000)
++++ b/.travis.yml	(date 1630954235000)
+@@ -0,0 +1,11 @@
++language: python
++python: 3.9
++
++addons:
++  chrome: stable
++
++install:
++  - pip install -r requirements.txt
++
++script:
++  - pytest
+Index: .idea/modules.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/modules.xml b/.idea/modules.xml
+new file mode 100644
+--- /dev/null	(date 1632898973610)
++++ b/.idea/modules.xml	(date 1632898973610)
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectModuleManager">
++    <modules>
++      <module fileurl="file://$PROJECT_DIR$/.idea/moodle_tests.iml" filepath="$PROJECT_DIR$/.idea/moodle_tests.iml" />
++    </modules>
++  </component>
++</project>
+\ No newline at end of file
+Index: models/auth.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from faker import Faker\r\n\r\nfake = Faker(\"Ru-ru\")\r\n\r\n\r\nclass AuthData:\r\n    def __init__(self, login=None, password=None):\r\n        self.login = login\r\n        self.password = password\r\n\r\n    @staticmethod\r\n    def random():\r\n        login = fake.email()\r\n        password = fake.password()\r\n        return AuthData(login, password)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/models/auth.py b/models/auth.py
+--- a/models/auth.py	(revision cde2bd0f944ac0e879c0f25c12676566417a8f7e)
++++ b/models/auth.py	(date 1633089616674)
+@@ -1,3 +1,7 @@
++"""
++Генерация случайных недействительных логина и пароля.
++"""
++
+ from faker import Faker
+ 
+ fake = Faker("Ru-ru")
+@@ -12,4 +16,4 @@
+     def random():
+         login = fake.email()
+         password = fake.password()
+-        return AuthData(login, password)
+\ No newline at end of file
++        return AuthData(login, password)
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+new file mode 100644
+--- /dev/null	(date 1632898973619)
++++ b/.idea/misc.xml	(date 1632898973619)
+@@ -0,0 +1,4 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.9 (moodle_tests)" project-jdk-type="Python SDK" />
++</project>
+\ No newline at end of file
