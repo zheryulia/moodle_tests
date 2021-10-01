@@ -1,4 +1,10 @@
-from pages.login_page import LoginPage
+"""
+Здесь содержатся основные ействия над сайтом.
+"""
+
+
+from pages.page_login import LoginPage
+from pages.page_user import UserPage, UserDataPage
 
 
 class Application:
@@ -6,6 +12,8 @@ class Application:
         self.driver = driver
         self.url = url
         self.login = LoginPage(self)
+        self.user_data = UserPage(self)
+        self.user_data_page = UserDataPage(self)
 
     def open_main_page(self):
         self.driver.get(self.url)
